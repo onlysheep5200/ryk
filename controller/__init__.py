@@ -44,7 +44,7 @@ from ryu.lib.ovs.bridge import OVSBridge,CONF
 
     ADDRESS_ARRANGEMENT = {
         ip_address : {
-            dp_addr : ip_address_for_datapath,
+            dpid : dpid,
             port_name : portname
         }
     }
@@ -169,14 +169,15 @@ class SimpleSwitch13(app_manager.RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         #邻居发现协议
-        if isinstance(pkt.data,icmpv6.nd_neighbor) :
+        if isinstance(pkt,icmpv6.icmpv6) and  isinstance(pkt.data,icmpv6.nd_neighbor) :
 
             target = ADDRESS_ARRANGEMENT.get(pkt.data.dst)
             if not target :
                 output_port = ofproto.OFPP_FLOOD
                 output_dp = datapath
             else :
-                output_dp = SWITCH_MAPPING[target['dp_address']]
+                #output_dp = SWITCH_MAPPING[target['dp_address']]
+                output_dp = self.datapaths[target['dpid']]
                 output_port = PORT_MAPPING[output_dp.id][target['port_name']]
         else :
             output_dp = datapath
