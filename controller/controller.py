@@ -66,10 +66,12 @@ PROTOCOL_TYPE_MAPPING = {
 TRANSPORT_RULES = {
     "HTTP Video Flow" : {
         (1,"s1-eth1","10.0.0.2"):{
-            "local_datapath_id" : 1,
-            "local_output_port_name" : "s2-eth2",
-            "target_datapath_id" : 2,
-            "target_output_port_name" : "s2-eth1"
+            0:{
+                "local_datapath_id" : 1,
+                "local_output_port_name" : "s1-eth2",
+                "target_datapath_id" : 2,
+                "target_output_port_name" : "s2-eth1"
+            }
         }
     }
 
@@ -91,9 +93,8 @@ ADDRESS_ARRANGEMENT = {
 
 }
 
-ETH_TYPE = '0x86dd'
-IP_PKT_TYPE = ipv6.ipv6
-IP_PREFIX = ipv6
+ETH_TYPE = 0x800
+IP_PKT_TYPE = ipv4.ipv4
 
 class SimpleSwitch13(app_manager.RyuApp):
     OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
@@ -124,7 +125,7 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     def init_switch_info(self,datapath):
         addr = "tcp:%s:6644"%datapath.address[0]
-        if addr not in SWITCH_MAPPING :
+        if True :
             SWITCH_MAPPING[addr] = datapath
             bridge =  OVSBridge(CONF,datapath.id,addr)
             bridge.init()
@@ -133,6 +134,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             for name in port_name_list :
                 port_id = bridge.get_ofport(name)
                 PORT_MAPPING[datapath.id][name] = port_id
+        print PORT_MAPPING
 
 
 
@@ -223,8 +225,10 @@ class SimpleSwitch13(app_manager.RyuApp):
         from_port_name = None
         #from_datapath_address = datapath.address[0]
         from_datapath_id = datapath.id
-        protocol_type = self._get_protocl_type(tsl_pkt)
-        if protocol_type == 'normal' :
+        protocol_type = self._get_protocol_type(tsl_pkt)
+        print protocol_type
+        if not protocol_type or protocol_type == 'normal' :
+            print 'src port is %d'%tsl_pkt.src_port
             out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=[parser.OFPActionOutput(ofproto.OFPP_FLOOD)],data = msg.data)
             datapath.send_msg(out)
             return
@@ -232,13 +236,13 @@ class SimpleSwitch13(app_manager.RyuApp):
         ports = PORT_MAPPING.get(datapath.id)
         if ports :
             for p in ports :
-                if ports[p] == msg['in_port'] :
+                if ports[p] == msg.match['in_port'] :
                     from_port_name = p
                     break
         #if from_port_name and from_datapath_address and protocol_type :
         if from_port_name and from_datapath_id and protocol_type :
             #selections = TRANSPORT_RULES[protocol_type][(from_port_name,from_datapath_address)]
-            selections = TRANSPORT_RULES[protocol_type][(from_port_name,from_datapath_id,to_adress)]
+            selections = TRANSPORT_RULES[protocol_type][(from_datapath_id,from_port_name,to_adress)]
             output_selection = self._select_route(selections)
             #local_datapath_address = output_selection['local_datapath_address']
             local_datapath_id = output_selection['local_datapath_id']
@@ -278,7 +282,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         return None
 
     def _get_protocol_type(self,pkt):
-        PROTOCOL_TYPE_MAPPING.setdefault(pkt.src_port,'normal')
+        #PROTOCOL_TYPE_MAPPING.setdefault(pkt.src_port,'normal')
         return PROTOCOL_TYPE_MAPPING.get(pkt.src_port)
 
     def _select_route(self,selections):
@@ -302,16 +306,16 @@ class SimpleSwitch13(app_manager.RyuApp):
         ip_dst = ip_pkt.dst
         match = parser.OFPMatch(eth_type=ETH_TYPE,ip_proto=ip_proto)
         if isinstance(IP_PKT_TYPE,ipv6.ipv6) :
-            match['ipv6_src'] = ip_src
-            match['ipv6_dst'] = ip_dst
+            match.ipv6_src = ip_src
+            match.ipv6_dst = ip_dst
         else :
-            match['ipv4_src'] = ip_src
-            match['ipv4_dst'] = ip_dst
+            match.ipv4_src= ip_src
+            match.ipv4_dst = ip_dst
         if in_port :
-            match['in_port'] = in_port
+            match.in_port = in_port
         if ip_proto == 6 :
-            match['tcp_src'] = src
-            match['tcp_dst'] = dst
+            match.tcp_src = src
+            match.tcp_dst = dst
         else :
             match['udp_src'] = src
             match['udp_dst'] = dst
