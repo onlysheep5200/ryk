@@ -114,6 +114,22 @@ TRANSPORT_RULES = {
             },
 
         },
+    },
+    "COAP":{
+        (3,"s3-eth1","10.0.0.3","10.0.0.2"):{
+            0:{
+                "local_datapath_id" : 3,
+                "local_output_port_name" : "s3-eth2",
+            },
+
+        },
+        (2,"s2-eth2","10.0.0.3","10.0.0.2"):{
+            0:{
+                "local_datapath_id" : 2,
+                "local_output_port_name" : "s2-eth1",
+            },
+
+        },
     }
 
 }
@@ -386,9 +402,9 @@ class SimpleSwitch13(app_manager.RyuApp):
         else :
             target_dpid = target['dpid']
             if target_dpid != datapath.id : 
-                print 'from %d to %d'%(datapath.id,target_dpid)
+                #print 'from %d to %d'%(datapath.id,target_dpid)
                 border_port_name = BORDER_PORT[datapath.id][target_dpid]
-                print 'via '+border_port_name
+                #print 'via '+border_port_name
             else : 
                 border_port_name = target['port_name']
             actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
