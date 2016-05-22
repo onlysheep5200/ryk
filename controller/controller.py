@@ -378,9 +378,17 @@ class SimpleSwitch13(app_manager.RyuApp):
         parser = datapath.ofproto_parser
         ofproto = datapath.ofproto
         dst_ip = ip_pkt.dst
-        target_dpid = ADDRESS_ARRANGEMENT[dst_ip]['dpid']
-        border_port_name = BORDER_PORT[datapath.id][target_dpid]
-        actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
+        #target_dpid = ADDRESS_ARRANGEMENT[dst_ip]['dpid']
+        target = ADDRESS_ARRANGEMENT.get(dst_ip)
+        if not target : 
+            actions = []
+        else :
+            target_dpid = target['dpid']
+            if target_dpid != datapath.id : 
+                border_port_name = BORDER_PORT[datapath.id][target_dpid]
+            else : 
+                border_port_name = target['port_name']
+            actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
         return parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=actions,data = msg.data)
 
 
