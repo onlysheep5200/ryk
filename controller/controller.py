@@ -195,6 +195,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         super(SimpleSwitch13, self).__init__(*args, **kwargs)
         self.mac_to_port = {}
         self.datapaths = {}
+        self.existingFlows = []
 
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
@@ -371,11 +372,14 @@ class SimpleSwitch13(app_manager.RyuApp):
                 return udp_pkt[0]
         return None
 
-    def _get_protocol_type(self,pkt):
+    def _get_protocol_type(self,pkt,ip_pkt):
         #PROTOCOL_TYPE_MAPPING.setdefault(pkt.src_port,'normal')
         ptype =  PROTOCOL_TYPE_MAPPING.get(pkt.src_port)
-        if ptype : 
-            print 'Flow of %s has been detected '%ptype
+        if ptype :
+            flowEntry = (ip_pkt.src,ip_pkt.dst,pkt.src_port,pkt.dst_port)
+            if not flowEntry in self.existingFlows :
+                print 'Flow of %s has been detected '%ptype
+                self.existingFlows.append(flowEntry)
         return ptype
 
     def _select_route(self,selections):
