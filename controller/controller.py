@@ -268,7 +268,7 @@ class SimpleSwitch13(app_manager.RyuApp):
                 target_actions = [parser.OFPActionOutput(target_outport)]
                 self.add_flow(target_datapath,1,target_match,target_actions)
             local_datapath.send_msg(out)
-            print "FLow type : "+protocol_type+" from "+from_port_name+" will be sent via port "+local_output_port_name
+            print protocol_type+" flow from "+from_port_name+" will be sent via port "+local_output_port_name
 
 
     def _get_tsl_pkg(self,pkt):
