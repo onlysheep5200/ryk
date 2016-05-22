@@ -175,7 +175,6 @@ class SimpleSwitch13(app_manager.RyuApp):
             for name in port_name_list :
                 port_id = bridge.get_ofport(name)
                 PORT_MAPPING[datapath.id][name] = port_id
-        print PORT_MAPPING
 
 
 
@@ -267,9 +266,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         #from_datapath_address = datapath.address[0]
         from_datapath_id = datapath.id
         protocol_type = self._get_protocol_type(tsl_pkt)
-        print protocol_type
         if not protocol_type or protocol_type == 'normal' :
-            print 'src port is %d'%tsl_pkt.src_port
             out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=[parser.OFPActionOutput(ofproto.OFPP_FLOOD)],data = msg.data)
             datapath.send_msg(out)
             return
