@@ -373,7 +373,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         else :
             matchdict['udp_src'] = src
             matchdict['udp_dst'] = dst
-        return parser.OFPMatch.from_jsondict(matchdict)
+        return parser.OFPMatch(**matchdict)
 
     def _default_routing_policy(self,datapath,ip_pkt,msg):
         parser = datapath.ofproto_parser
