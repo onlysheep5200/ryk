@@ -236,7 +236,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         elif icmp_pkt :
             self._operate_with_icmpv6(icmp_pkt[0],datapath,msg)
         elif arp_pkt :
-            self._operate_with_icmpv6(arp_pkt[0],datapath,msg)
+            self._arp_route(datapath,arp_pkt[0],msg)
         elif ip_pkt :
             tsl_pkt = self._get_tsl_pkg(pkt)
             if tsl_pkt :
@@ -382,6 +382,21 @@ class SimpleSwitch13(app_manager.RyuApp):
         border_port_name = BORDER_PORT[datapath.id][target_dpid]
         actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
         return parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=actions,data = msg.data)
+
+    def _arp_route(self,datapath,pkt,msg):
+        parser = datapath.ofproto_parser
+        dst_ip = pkt.dst_ip
+        target = ADDRESS_ARRANGEMENT[dst_ip]
+        if target :
+            dst_dpid = target['dpid']
+            dst_port_name = target['port_name']
+            if dst_ip == datapath.id :
+                actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][dst_port_name])]
+            else :
+                border_port_name = BORDER_PORT[datapath.id][dst_dpid]
+                actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
+            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=actions,data = msg.data)
+            datapath.send_msg(out)
 
 
 
