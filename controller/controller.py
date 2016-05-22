@@ -357,22 +357,23 @@ class SimpleSwitch13(app_manager.RyuApp):
         dst = tsl_pkt.dst_port
         ip_src = ip_pkt.src
         ip_dst = ip_pkt.dst
-        match = parser.OFPMatch(eth_type=ETH_TYPE,ip_proto=ip_proto)
+        matchdict = {'eth_type':ETH_TYPE,'ip_proto':ip_proto}
+        #match = parser.OFPMatch(eth_type=ETH_TYPE,ip_proto=ip_proto)
         if isinstance(IP_PKT_TYPE,ipv6.ipv6) :
-            match.set_ipv6_src(ip_src)
-            match.set_ipv6_dst(ip_dst)
+            matchdict['ipv6'] = ip_src
+            matchdict['ipv6_dst'] = ip_dst
         else :
-            match.set_ipv4_src(ip_src)
-            match.set_ipv4_dst(ip_dst)
+            matchdict['ipv4_src'] = ip_src
+            matchdict['ipv4_dst'] = ip_dst
         if in_port :
-            match.set_in_port(in_port)
+            matchdict['in_port'] = in_port
         if ip_proto == 6 :
-            match.set_tcp_src(src)
-            match.set_tcp_dst(dst)
+            matchdict['tcp_src'] = src
+            matchdict['tcp_dst'] = dst
         else :
-            match.set_udp_src(src)
-            match.set_udp_dst(dst)
-        return match
+            matchdict['udp_src'] = src
+            matchdict['udp_dst'] = dst
+        return parser.OFPMatch.from_jsondict(matchdict)
 
     def _default_routing_policy(self,datapath,ip_pkt,msg):
         parser = datapath.ofproto_parser
