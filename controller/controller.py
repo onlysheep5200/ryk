@@ -79,38 +79,38 @@ TRANSPORT_RULES = {
             },
 
         },
-        (1,"s1-eth1","10.0.0.1","10.0.0.2"):{
+        (1,"s1-eth1","10.0.0.1","10.0.0.3"):{
             0:{
                 "local_datapath_id" : 1,
                 "local_output_port_name" : "s1-eth3",
             },
 
         },
-        (3,"s3-eth3","10.0.0.1","10.0.0.2"):{
+        (3,"s3-eth3","10.0.0.1","10.0.0.3"):{
             0:{
                 "local_datapath_id" : 3,
                 "local_output_port_name" : "s3-eth1",
             },
 
         },
-        (2,"s2-eth1","10.0.0.2","10.0.0.3"):{
+        (2,"s2-eth2","10.0.0.3","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 2,
-                "local_output_port_name" : "s2-eth2",
+                "local_output_port_name" : "s2-eth1",
             },
 
         },
-        (1,"s1-eth2","10.0.0.2","10.0.0.3"):{
+        (1,"s1-eth3","10.0.0.3","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 1,
-                "local_output_port_name" : "s1-eth3",
+                "local_output_port_name" : "s1-eth2",
             },
 
         },
-        (3,"s3-eth3","10.0.0.2","10.0.0.3"):{
+        (3,"s3-eth1","10.0.0.3","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 3,
-                "local_output_port_name" : "s3-eth1",
+                "local_output_port_name" : "s3-eth3",
             },
 
         },
@@ -385,7 +385,9 @@ class SimpleSwitch13(app_manager.RyuApp):
         else :
             target_dpid = target['dpid']
             if target_dpid != datapath.id : 
+                print 'from %d to %d'%(datapath.id,target_dpid)
                 border_port_name = BORDER_PORT[datapath.id][target_dpid]
+                print 'via '+border_port_name
             else : 
                 border_port_name = target['port_name']
             actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
@@ -398,7 +400,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         if target :
             dst_dpid = target['dpid']
             dst_port_name = target['port_name']
-            if dst_ip == datapath.id :
+            if dst_dpid == datapath.id :
                 actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][dst_port_name])]
             else :
                 border_port_name = BORDER_PORT[datapath.id][dst_dpid]
