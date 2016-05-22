@@ -123,7 +123,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         self.add_flow(datapath, 0, match, actions)
 
     def init_switch_info(self,datapath):
-        addr = "tcp:%s:6634"%datapath.address[0]
+        addr = "tcp:%s:6644"%datapath.address[0]
         if addr not in SWITCH_MAPPING :
             SWITCH_MAPPING[addr] = datapath
             bridge =  OVSBridge(CONF,datapath.id,addr)
@@ -213,7 +213,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         actions = [parser.OFPActionOutput(output_port)]
 
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
-                                  in_port=ofproto.OFPP_CONTROLLER, actions=actions, data=msg.data)
+                                  in_port=msg.match['in_port'], actions=actions, data=msg.data)
         output_dp.send_msg(out)
 
 
@@ -225,7 +225,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         from_datapath_id = datapath.id
         protocol_type = self._get_protocl_type(tsl_pkt)
         if protocol_type == 'normal' :
-            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=ofproto.OFPP_CONTROLLER,actions=[parser.OFPActionOutput(ofproto.OFPP_FLOOD)],data = msg.data)
+            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=[parser.OFPActionOutput(ofproto.OFPP_FLOOD)],data = msg.data)
             datapath.send_msg(out)
             return
         to_adress = ip_pkt.dst
