@@ -59,20 +59,61 @@ PORT_MAPPING = {
 }
 
 PROTOCOL_TYPE_MAPPING = {
-    8888 : "HTTP Video Flow"
-
+    8888 : "HTTP",
+    9999 : "COAP"
 }
 
 TRANSPORT_RULES = {
     "HTTP Video Flow" : {
-        (1,"s1-eth1","10.0.0.2"):{
+        (1,"s1-eth1","10.0.0.1","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 1,
                 "local_output_port_name" : "s1-eth2",
-                "target_datapath_id" : 2,
-                "target_output_port_name" : "s2-eth1"
-            }
-        }
+            },
+
+        },
+        (2,"s2-eth2","10.0.0.1","10.0.0.2"):{
+            0:{
+                "local_datapath_id" : 2,
+                "local_output_port_name" : "s2-eth1",
+            },
+
+        },
+        (1,"s1-eth1","10.0.0.1","10.0.0.2"):{
+            0:{
+                "local_datapath_id" : 1,
+                "local_output_port_name" : "s1-eth3",
+            },
+
+        },
+        (1,"s3-eth3","10.0.0.1","10.0.0.2"):{
+            0:{
+                "local_datapath_id" : 3,
+                "local_output_port_name" : "s3-eth1",
+            },
+
+        },
+        (2,"s2-eth1","10.0.0.2","10.0.0.3"):{
+            0:{
+                "local_datapath_id" : 2,
+                "local_output_port_name" : "s2-eth2",
+            },
+
+        },
+        (1,"s1-eth2","10.0.0.2","10.0.0.3"):{
+            0:{
+                "local_datapath_id" : 1,
+                "local_output_port_name" : "s1-eth3",
+            },
+
+        },
+        (3,"s3-eth3","10.0.0.2","10.0.0.3"):{
+            0:{
+                "local_datapath_id" : 3,
+                "local_output_port_name" : "s3-eth1",
+            },
+
+        },
     }
 
 }
@@ -233,6 +274,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             datapath.send_msg(out)
             return
         to_adress = ip_pkt.dst
+        src_address = ip_pkt.src
         ports = PORT_MAPPING.get(datapath.id)
         if ports :
             for p in ports :
@@ -242,7 +284,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         #if from_port_name and from_datapath_address and protocol_type :
         if from_port_name and from_datapath_id and protocol_type :
             #selections = TRANSPORT_RULES[protocol_type][(from_port_name,from_datapath_address)]
-            selections = TRANSPORT_RULES[protocol_type][(from_datapath_id,from_port_name,to_adress)]
+            selections = TRANSPORT_RULES[protocol_type][(from_datapath_id,from_port_name,src_address,to_adress)]
             output_selection = self._select_route(selections)
             #local_datapath_address = output_selection['local_datapath_address']
             local_datapath_id = output_selection['local_datapath_id']
