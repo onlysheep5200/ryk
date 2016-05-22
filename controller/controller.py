@@ -130,6 +130,27 @@ TRANSPORT_RULES = {
             },
 
         },
+        (2,"s2-eth2","10.0.0.2","10.0.0.1"):{
+            0:{
+                "local_datapath_id" : 2,
+                "local_output_port_name" : "s2-eth3",
+            },
+
+        },
+        (3,"s3-eth2","10.0.0.2","10.0.0.1"):{
+            0:{
+                "local_datapath_id" : 3,
+                "local_output_port_name" : "s3-eth3",
+            },
+
+        },
+         (1,"s1-eth3","10.0.0.2","10.0.0.1"):{
+            0:{
+                "local_datapath_id" : 1,
+                "local_output_port_name" : "s1-eth1",
+            },
+
+        },
     }
 
 }
