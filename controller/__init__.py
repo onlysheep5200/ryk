@@ -25,7 +25,7 @@ from ryu.lib.ovs.bridge import OVSBridge,CONF
 
     TRANSPORT_RULES = {
         protocol_type : {
-            (from_datapath_id,from_port_name) :
+            (from_datapath_id,from_port_name,to_address) :
             {
             0 :
                 //多个出口，供选路时使用
@@ -59,14 +59,35 @@ PORT_MAPPING = {
 }
 
 PROTOCOL_TYPE_MAPPING = {
+    8888 : "HTTP Video Flow"
 
 }
 
 TRANSPORT_RULES = {
+    "HTTP Video Flow" : {
+        (1,"s1-eth1","10.0.0.2"):{
+            "local_datapath_id" : 1,
+            "local_output_port_name" : "s2-eth2",
+            "target_datapath_id" : 2,
+            "target_output_port_name" : "s2-eth1"
+        }
+    }
 
 }
 
 ADDRESS_ARRANGEMENT = {
+    "10.0.0.1":{
+        "dpid":1,
+        "port_name":"s1-eth1"
+    },
+    "10.0.0.2" : {
+        "dpid" : 2,
+        "port_name" : "s2-eth1"
+    },
+    "10.0.0.3":{
+        "dpid":1,
+        "port_name" : "s3-eth1"
+    }
 
 }
 
@@ -194,17 +215,24 @@ class SimpleSwitch13(app_manager.RyuApp):
         ofproto = datapath.ofproto
         parser = datapath.ofproto_parser
         from_port_name = None
-        from_datapath_address = datapath.address[0]
+        #from_datapath_address = datapath.address[0]
+        from_datapath_id = datapath.id
         protocol_type = self._get_protocl_type(tsl_pkt)
-
+        if protocol_type == 'normal' :
+            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=ofproto.OFPP_CONTROLLER,actions=[parser.OFPActionOutput(ofproto.OFPP_FLOOD)],data = msg.data)
+            datapath.send_msg(out)
+            return
+        to_adress = ip_pkt.dst
         ports = PORT_MAPPING.get(datapath.id)
         if ports :
             for p in ports :
                 if ports[p] == msg['in_port'] :
                     from_port_name = p
                     break
-        if from_port_name and from_datapath_address and protocol_type :
-            selections = TRANSPORT_RULES[protocol_type][(from_port_name,from_datapath_address)]
+        #if from_port_name and from_datapath_address and protocol_type :
+        if from_port_name and from_datapath_id and protocol_type :
+            #selections = TRANSPORT_RULES[protocol_type][(from_port_name,from_datapath_address)]
+            selections = TRANSPORT_RULES[protocol_type][(from_port_name,from_datapath_id,to_adress)]
             output_selection = self._select_route(selections)
             #local_datapath_address = output_selection['local_datapath_address']
             local_datapath_id = output_selection['local_datapath_id']
@@ -230,6 +258,7 @@ class SimpleSwitch13(app_manager.RyuApp):
                 target_actions = [parser.OFPActionOutput(target_outport)]
                 self.add_flow(target_datapath,1,target_match,target_actions)
             local_datapath.send_msg(out)
+            print "FLow type : "+protocol_type+" from "+from_port_name+" will be sent via port "+local_output_port_name
 
 
     def _get_tsl_pkg(self,pkt):
