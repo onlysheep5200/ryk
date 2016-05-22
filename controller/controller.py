@@ -64,7 +64,7 @@ PROTOCOL_TYPE_MAPPING = {
 }
 
 TRANSPORT_RULES = {
-    "HTTP Video Flow" : {
+    "HTTP" : {
         (1,"s1-eth1","10.0.0.1","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 1,
@@ -86,7 +86,7 @@ TRANSPORT_RULES = {
             },
 
         },
-        (1,"s3-eth3","10.0.0.1","10.0.0.2"):{
+        (3,"s3-eth3","10.0.0.1","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 3,
                 "local_output_port_name" : "s3-eth1",
@@ -287,8 +287,8 @@ class SimpleSwitch13(app_manager.RyuApp):
             local_datapath_id = output_selection['local_datapath_id']
             local_output_port_name = output_selection['local_output_port_name']
             #target_datapath_address = output_selection['target_datapath_address']
-            target_datapath_id = output_selection['target_datapath_id']
-            target_output_port_name = output_selection['target_output_port_name']
+            target_datapath_id = output_selection.get('target_datapath_id')
+            target_output_port_name = output_selection.get('target_output_port_name')
 
             #local_datapath = SWITCH_MAPPING[local_datapath_address]
             local_datapath = self.datapaths[local_datapath_id]
@@ -297,7 +297,7 @@ class SimpleSwitch13(app_manager.RyuApp):
             local_actions = [parser.OFPActionOutput(local_outport)]
             local_match = self._get_ofmatch_for_tsl(parser,ip_pkt,tsl_pkt,msg.match['in_port'])
             self.add_flow(local_datapath,1,local_match,local_actions)
-            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=ofproto.OFPP_CONTROLLER,actions=local_actions,data = msg.data)
+            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=local_actions,data = msg.data)
             #if target_datapath_address and local_datapath_address != target_datapath_address :
             if target_datapath_id and local_datapath_id != target_datapath_id :
                 target_match = self._get_ofmatch_for_tsl(parser,ip_pkt,tsl_pkt,None)
