@@ -123,7 +123,7 @@ TRANSPORT_RULES = {
             },
 
         },
-        (2,"s2-eth2","10.0.0.3","10.0.0.2"):{
+        (2,"s2-eth3","10.0.0.3","10.0.0.2"):{
             0:{
                 "local_datapath_id" : 2,
                 "local_output_port_name" : "s2-eth1",
@@ -352,7 +352,9 @@ class SimpleSwitch13(app_manager.RyuApp):
 
     def _get_protocol_type(self,pkt):
         #PROTOCOL_TYPE_MAPPING.setdefault(pkt.src_port,'normal')
-        return PROTOCOL_TYPE_MAPPING.get(pkt.src_port)
+        ptype =  PROTOCOL_TYPE_MAPPING.get(pkt.src_port)
+        print 'Flow of %s has been detected '%ptype
+        return ptype
 
     def _select_route(self,selections):
         '''
