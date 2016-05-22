@@ -359,19 +359,19 @@ class SimpleSwitch13(app_manager.RyuApp):
         ip_dst = ip_pkt.dst
         match = parser.OFPMatch(eth_type=ETH_TYPE,ip_proto=ip_proto)
         if isinstance(IP_PKT_TYPE,ipv6.ipv6) :
-            match.ipv6_src = ip_src
-            match.ipv6_dst = ip_dst
+            match.set_ipv6_src(ip_src)
+            match.set_ipv6_dst(ip_dst)
         else :
-            match.ipv4_src= ip_src
-            match.ipv4_dst = ip_dst
+            match.set_ipv4_src(ip_src)
+            match.set_ipv4_dst(ip_dst)
         if in_port :
-            match.in_port = in_port
+            match.set_in_port(in_port)
         if ip_proto == 6 :
-            match.tcp_src = src
-            match.tcp_dst = dst
+            match.set_tcp_src(src)
+            match.set_tcp_dst(dst)
         else :
-            match['udp_src'] = src
-            match['udp_dst'] = dst
+            match.set_udp_src(src)
+            match.set_udp_dst(dst)
         return match
 
     def _default_routing_policy(self,datapath,ip_pkt,msg):
