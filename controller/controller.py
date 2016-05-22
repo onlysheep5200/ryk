@@ -374,7 +374,8 @@ class SimpleSwitch13(app_manager.RyuApp):
     def _get_protocol_type(self,pkt):
         #PROTOCOL_TYPE_MAPPING.setdefault(pkt.src_port,'normal')
         ptype =  PROTOCOL_TYPE_MAPPING.get(pkt.src_port)
-        print 'Flow of %s has been detected '%ptype
+        if ptype : 
+            print 'Flow of %s has been detected '%ptype
         return ptype
 
     def _select_route(self,selections):
