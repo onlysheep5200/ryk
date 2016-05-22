@@ -128,10 +128,24 @@ ADDRESS_ARRANGEMENT = {
         "port_name" : "s2-eth1"
     },
     "10.0.0.3":{
-        "dpid":1,
+        "dpid":3,
         "port_name" : "s3-eth1"
     }
+}
 
+BORDER_PORT = {
+    1:{
+        2:'s1-eth2',
+        3:'s1-eth3'
+    },
+    2 : {
+        1:'s2-eth2',
+        3:'s2-eth3'
+    },
+    3 : {
+        1:'s3-eth3',
+        2:'s3-eth2'
+    }
 }
 
 ETH_TYPE = 0x800
@@ -267,7 +281,7 @@ class SimpleSwitch13(app_manager.RyuApp):
         from_datapath_id = datapath.id
         protocol_type = self._get_protocol_type(tsl_pkt)
         if not protocol_type or protocol_type == 'normal' :
-            out = parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=[parser.OFPActionOutput(ofproto.OFPP_FLOOD)],data = msg.data)
+            out = self._default_routing_policy(datapath,ip_pkt,msg)
             datapath.send_msg(out)
             return
         to_adress = ip_pkt.dst
@@ -359,6 +373,15 @@ class SimpleSwitch13(app_manager.RyuApp):
             match['udp_src'] = src
             match['udp_dst'] = dst
         return match
+
+    def _default_routing_policy(self,datapath,ip_pkt,msg):
+        parser = datapath.ofproto_parser
+        ofproto = datapath.ofproto
+        dst_ip = ip_pkt.dst
+        target_dpid = ADDRESS_ARRANGEMENT[dst_ip]['dpid']
+        border_port_name = BORDER_PORT[datapath.id][target_dpid]
+        actions = [parser.OFPActionOutput(PORT_MAPPING[datapath.id][border_port_name])]
+        return parser.OFPPacketOut(datapath=datapath,buffer_id = datapath.ofproto.OFP_NO_BUFFER,in_port=msg.match['in_port'],actions=actions,data = msg.data)
 
 
 
